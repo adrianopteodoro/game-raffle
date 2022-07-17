@@ -7,7 +7,7 @@ html {
 
 .bgimg {
   /* Background image */
-  background-image: url("/images/raffle.jpg");
+  background-image: url("../images/raffle.jpg");
   /* Full-screen */
   height: 100%;
   /* Center the background image */
