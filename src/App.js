@@ -1,23 +1,88 @@
-import logo from './logo.svg';
-import './App.css';
+import "./App.css";
+import example_data from "./example_data";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { shuffle } from "lodash";
+import ReactCanvasConfetti from "react-canvas-confetti";
+import Play from "./svg/etc/play.svg";
+import Reset from "./svg/etc/reset.svg";
+
+function randomInRange(min, max) {
+  return Math.random() * (max - min) + min;
+}
+
+const canvasStyles = {
+  position: "fixed",
+  pointerEvents: "none",
+  width: "100%",
+  height: "100%",
+  top: 0,
+  left: 0,
+};
+
+function getAnimationSettings(originXA, originXB) {
+  return {
+    startVelocity: 30,
+    spread: 360,
+    ticks: 60,
+    zIndex: 0,
+    particleCount: 150,
+    origin: {
+      x: randomInRange(originXA, originXB),
+      y: Math.random() - 0.2,
+    },
+  };
+}
 
 function App() {
+  const [games, setGames] = useState(example_data);
+  const refAnimationInstance = useRef(null);
+  const [intervalId, setIntervalId] = useState();
+
+  const getInstance = useCallback((instance) => {
+    refAnimationInstance.current = instance;
+  }, []);
+
+  const nextTickAnimation = useCallback(() => {
+    if (refAnimationInstance.current) {
+      refAnimationInstance.current(getAnimationSettings(0.1, 0.3));
+      refAnimationInstance.current(getAnimationSettings(0.7, 0.9));
+    }
+  }, []);
+
+  const startAnimation = useCallback(() => {
+    if (!intervalId) {
+      setIntervalId(setInterval(nextTickAnimation, 400));
+    }
+  }, [intervalId, nextTickAnimation]);
+
+  const stopAnimation = useCallback(() => {
+    clearInterval(intervalId);
+    setIntervalId(null);
+    refAnimationInstance.current &&
+      refAnimationInstance.current.stopAnimation() &&
+      refAnimationInstance.current.reset();
+  }, [intervalId]);
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <ReactCanvasConfetti refConfetti={getInstance} style={canvasStyles} />
+      <header className="App-header">Game Raffle</header>
+      <div className="App-content">
+        <div className="App-controls">
+          <img
+            src={Play}
+            onClick={startAnimation}
+            className="Play-btn"
+            alt="Play"
+          />
+          <img
+            src={Reset}
+            onClick={stopAnimation}
+            className="Reset-btn"
+            alt="Reset"
+          />
+        </div>
+      </div>
     </div>
   );
 }
